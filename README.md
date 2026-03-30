@@ -266,9 +266,9 @@ This project is licensed under the MIT License.
 ## 👥 Contributors
 
 - Kritika [1SI23CI065]
-- Monish
+- Monisha
 - Chetan Kumar
-- K Chandan Jayasim
+- K Chandan Jayasimha
 
 **Guide:** Dr. Savithramma R M, Assistant Professor
 
