@@ -153,7 +153,7 @@ export const Dashboard: React.FC = () => {
         <footer className="mt-8 text-center text-dark-500 text-sm">
           <p>Intent-Aware Network Stack © 2024</p>
           <p className="mt-1">Siddaganga Institute of Technology, Tumkur</p>
-          <p className="mt-1 text-xs">Developed by Kritika, Monish, Chetan Kumar, K Chandan Jayasim</p>
+          <p className="mt-1 text-xs">Developed by Kritika, Monisha, Chetan Kumar, K Chandan Jayasimha</p>
         </footer>
       </main>
     </div>
