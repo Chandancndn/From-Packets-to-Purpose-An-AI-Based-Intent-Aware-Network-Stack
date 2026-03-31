@@ -15,7 +15,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import func
 
 from app.config import settings
 
@@ -50,7 +49,7 @@ class Flow(Base):
     duration_ms = Column(Float, default=0.0)
 
     # Timing features
-    start_time = Column(DateTime, default=func.now)
+    start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
     inter_arrival_times = Column(String, nullable=True)  # JSON string
 
@@ -75,8 +74,8 @@ class Flow(Base):
     bandwidth_limit_mbps = Column(Float, nullable=True)
 
     # Metadata
-    created_at = Column(DateTime, default=func.now)
-    updated_at = Column(DateTime, default=func.now, onupdate=func.now)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Application info (if detected)
     application = Column(String(100), nullable=True)

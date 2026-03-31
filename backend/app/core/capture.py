@@ -209,6 +209,7 @@ class SimulatedCaptureEngine:
         self.is_capturing = False
         self.stop_event = threading.Event()
         self.capture_thread: Optional[threading.Thread] = None
+        self.event_loop = None  # Store reference to event loop
 
         self.packets_captured = 0
         self.flows_detected = 0
@@ -229,8 +230,18 @@ class SimulatedCaptureEngine:
 
         src_ip, dst_ip = random.choice(self.endpoints)
 
+        # Default parameters for background traffic
+        default_params = {
+            "packet_count": random.randint(20, 50),
+            "byte_count": random.randint(10000, 100000),
+            "packets_per_second": random.uniform(1, 10),
+            "avg_packet_size": random.uniform(500, 1000),
+            "dst_port": random.choice([443, 8080]),
+            "protocol": "TCP",
+        }
+
         # Category-specific parameters
-        params = {
+        category_params = {
             "interactive": {
                 "packet_count": random.randint(50, 100),
                 "byte_count": random.randint(10000, 50000),
@@ -263,7 +274,9 @@ class SimulatedCaptureEngine:
                 "dst_port": random.randint(10000, 65000),
                 "protocol": random.choice(["TCP", "UDP"]),
             }
-        }.get(category, params["background"])
+        }
+
+        params = category_params.get(category, default_params)
 
         params["src_ip"] = src_ip
         params["dst_ip"] = dst_ip
@@ -296,14 +309,8 @@ class SimulatedCaptureEngine:
                 self.packets_captured += flow["packet_count"]
                 self.flows_detected += 1
 
-                if self.on_flow_detected:
-                    try:
-                        asyncio.run_coroutine_threadsafe(
-                            self._notify_flow(flow),
-                            asyncio.get_event_loop()
-                        )
-                    except Exception as e:
-                        print(f"Error in simulated flow callback: {e}")
+                # Schedule callback on event loop
+                self._schedule_flow_callback(flow)
 
             # Wait for next interval
             time.sleep(self.simulation_interval)
@@ -312,6 +319,17 @@ class SimulatedCaptureEngine:
         """Notify flow callback."""
         if self.on_flow_detected:
             await self.on_flow_detected(flow)
+
+    def _schedule_flow_callback(self, flow: Dict[str, Any]):
+        """Schedule flow callback on the event loop."""
+        if self.on_flow_detected and self.event_loop:
+            try:
+                asyncio.run_coroutine_threadsafe(
+                    self._notify_flow(flow),
+                    self.event_loop
+                )
+            except Exception as e:
+                print(f"Error in simulated flow callback: {e}")
 
     def start(self) -> bool:
         """Start simulated capture."""
@@ -323,6 +341,12 @@ class SimulatedCaptureEngine:
         self.start_time = time.time()
         self.packets_captured = 0
         self.flows_detected = 0
+
+        # Store the current event loop for use in the simulation thread
+        try:
+            self.event_loop = asyncio.get_event_loop()
+        except RuntimeError:
+            self.event_loop = asyncio.new_event_loop()
 
         self.capture_thread = threading.Thread(target=self._simulation_loop, daemon=True)
         self.capture_thread.start()

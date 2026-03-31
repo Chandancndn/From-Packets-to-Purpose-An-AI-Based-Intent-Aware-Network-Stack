@@ -64,6 +64,9 @@ async def process_flow(flow_data: dict):
             db_flow.is_classified = 1
             db_flow.priority_level = get_priority_level(category)
             db.commit()
+            
+            # Debug log
+            print(f"✓ Flow saved: {db_flow.src_ip}:{db_flow.src_port} → {db_flow.dst_ip}:{db_flow.dst_port} ({category} - {confidence:.1%})")
 
             # Broadcast to WebSocket clients
             await broadcast_flow_update({
@@ -110,7 +113,9 @@ async def process_flow(flow_data: dict):
             db.close()
 
     except Exception as e:
-        print(f"Error processing flow: {e}")
+        import traceback
+        print(f"❌ Error processing flow: {e}")
+        traceback.print_exc()
 
 
 @asynccontextmanager
@@ -133,16 +138,13 @@ async def lifespan(app: FastAPI):
     # Start capture engine (use simulated for development)
     print("Starting packet capture engine...")
     try:
-        # Try real capture first
-        capture_engine = PacketCaptureEngine(on_flow_detected=process_flow)
-        if capture_engine.start():
-            print("Real packet capture started")
-        else:
-            raise Exception("Failed to start capture")
-    except Exception as e:
-        print(f"Using simulated capture: {e}")
+        # Use simulated capture for development/testing (doesn't require root)
         capture_engine = SimulatedCaptureEngine(on_flow_detected=process_flow)
         capture_engine.start()
+        print("Using simulated packet capture")
+    except Exception as e:
+        print(f"Error starting simulated capture: {e}")
+        raise
 
     # Start background tasks
     asyncio.create_task(stats_broadcast_task())

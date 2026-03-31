@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Header } from '../components/Header';
 import { StatCard } from '../components/StatCard';
-import { FlowTable } from '../components/FlowTable';
+import { RecentFlowsPanel } from '../components/RecentFlowsPanel';
 import { TrafficChart } from '../components/TrafficChart';
 import { AlertPanel } from '../components/AlertPanel';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -86,10 +86,12 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Flow Table */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Recent Flows Panel - Scrollable */}
           <div className="lg:col-span-2">
-            <FlowTable flows={allFlows} />
+            <div style={{ height: '500px' }}>
+              <RecentFlowsPanel flows={allFlows} />
+            </div>
           </div>
 
           {/* Sidebar */}
